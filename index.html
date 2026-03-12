@@ -216,12 +216,60 @@
     width: 18px; height: 18px;
     border-radius: 50%;
     cursor: pointer;
-    border: 1.5px solid transparent;
+    border: 0.5px solid var(--border-hi);
     transition: border-color 0.12s, transform 0.1s;
     flex-shrink: 0;
   }
   .swatch:hover { border-color: var(--offwhite); transform: scale(1.15); }
   .swatch.active { border-color: var(--offwhite); }
+  .toast {
+    position: fixed;
+    bottom: 32px;
+    left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: var(--surface);
+    border: 1px solid var(--border-hi);
+    color: var(--text);
+    font-family: var(--font-sans);
+    font-size: 11px;
+    font-weight: 300;
+    letter-spacing: 0.04em;
+    padding: 8px 16px;
+    border-radius: 4px;
+    pointer-events: none;
+    z-index: 1000;
+    opacity: 0;
+    box-shadow: 0 6px 24px rgba(0,0,0,0.5);
+    transition: opacity 0.2s, transform 0.2s;
+  }
+  .toast.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+  .toast .toast-icon {
+    color: var(--rosy);
+    margin-right: 6px;
+  }
+  .tooltip {
+    position: fixed;
+    background: var(--surface);
+    border: 1px solid var(--border-hi);
+    color: var(--text);
+    font-family: var(--font-sans);
+    font-size: 10px;
+    font-weight: 300;
+    letter-spacing: 0.03em;
+    padding: 4px 8px;
+    border-radius: 3px;
+    pointer-events: none;
+    z-index: 1000;
+    white-space: nowrap;
+    opacity: 0;
+    transition: opacity 0.12s;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+  }
+  .tooltip.visible { opacity: 1; }
+  .tooltip .tooltip-hex { color: var(--text-dim); margin-left: 5px; }
 
   /* CANVAS */
   .canvas-area {
@@ -396,14 +444,11 @@ automations start</textarea>
         <label>Text</label>
         <input type="color" id="textColor" value="#ffffff">
         <div class="swatch-row">
-          <div class="swatch" style="background:#160b06" data-target="text" data-color="#160b06" title="Coffee Bean"></div>
           <div class="swatch" style="background:#35140d" data-target="text" data-color="#35140d" title="Rich Mahogany"></div>
-          <div class="swatch" style="background:#dc5c46" data-target="text" data-color="#dc5c46" title="Rosy Copper"></div>
-          <div class="swatch" style="background:#efefe8" data-target="text" data-color="#efefe8" title="Off-White"></div>
-          <div class="swatch" style="background:#e1dcc5" data-target="text" data-color="#e1dcc5" title="Sand Dune"></div>
           <div class="swatch" style="background:#f2f2f2" data-target="text" data-color="#f2f2f2" title="Soft Linen"></div>
-          <div class="swatch" style="background:#31303a" data-target="text" data-color="#31303a" title="Deep Blue"></div>
-          <div class="swatch" style="background:#ffffff" data-target="text" data-color="#ffffff" title="White"></div>
+          <div class="swatch" style="background:#dc5c46" data-target="text" data-color="#dc5c46" title="Rosy Copper"></div>
+          <div class="swatch" style="background:#e1dcc5" data-target="text" data-color="#e1dcc5" title="Sand Dune"></div>
+          <div class="swatch" style="background:#160b06" data-target="text" data-color="#160b06" title="Coffee Bean"></div>
         </div>
       </div>
     </div>
@@ -427,14 +472,11 @@ automations start</textarea>
           <input type="color" id="bgColor" value="#efefe8">
         </div>
         <div class="swatch-row">
-          <div class="swatch" style="background:#efefe8" data-target="bg" data-color="#efefe8" title="Off-White"></div>
-          <div class="swatch" style="background:#e1dcc5" data-target="bg" data-color="#e1dcc5" title="Sand Dune"></div>
-          <div class="swatch" style="background:#f2f2f2" data-target="bg" data-color="#f2f2f2" title="Soft Linen"></div>
-          <div class="swatch" style="background:#160b06" data-target="bg" data-color="#160b06" title="Coffee Bean"></div>
           <div class="swatch" style="background:#35140d" data-target="bg" data-color="#35140d" title="Rich Mahogany"></div>
+          <div class="swatch" style="background:#f2f2f2" data-target="bg" data-color="#f2f2f2" title="Soft Linen"></div>
           <div class="swatch" style="background:#dc5c46" data-target="bg" data-color="#dc5c46" title="Rosy Copper"></div>
-          <div class="swatch" style="background:#31303a" data-target="bg" data-color="#31303a" title="Deep Blue"></div>
-          <div class="swatch" style="background:#ffffff" data-target="bg" data-color="#ffffff" title="White"></div>
+          <div class="swatch" style="background:#e1dcc5" data-target="bg" data-color="#e1dcc5" title="Sand Dune"></div>
+          <div class="swatch" style="background:#160b06" data-target="bg" data-color="#160b06" title="Coffee Bean"></div>
         </div>
       </div>
     </div>
@@ -479,7 +521,27 @@ automations start</textarea>
   </div>
 </div>
 
+<div class="toast" id="toast"></div>
+<div class="tooltip" id="tooltip"></div>
 <script>
+
+// ── TOOLTIP ──
+const tooltip = document.getElementById('tooltip');
+document.querySelectorAll('.swatch').forEach(sw => {
+  sw.addEventListener('mouseenter', e => {
+    const name = sw.getAttribute('title');
+    const hex = sw.dataset.color.toUpperCase();
+    tooltip.innerHTML = `${name}<span class="tooltip-hex">${hex}</span>`;
+    tooltip.classList.add('visible');
+    positionTooltip(e);
+  });
+  sw.addEventListener('mousemove', positionTooltip);
+  sw.addEventListener('mouseleave', () => tooltip.classList.remove('visible'));
+});
+function positionTooltip(e) {
+  tooltip.style.left = e.clientX + 10 + 'px';
+  tooltip.style.top  = e.clientY - 28 + 'px';
+}
 
 // ── STATE ──
 const canvas   = document.getElementById('mainCanvas');
@@ -521,8 +583,12 @@ function applyViewport() {
   viewport.style.transform = `translate(${pan.x}px,${pan.y}px) scale(${zoom})`;
   zoomBadge.textContent = `${Math.round(zoom * 100)}%`;
 }
-function centerCanvas() {
+function centerCanvas(fitToView) {
   const ar = area.getBoundingClientRect();
+  if (fitToView) {
+    const pad = 40;
+    zoom = Math.min((ar.width - pad) / state.canvasW, (ar.height - pad) / state.canvasH, 1);
+  }
   pan.x = (ar.width  - state.canvasW * zoom) / 2;
   pan.y = (ar.height - state.canvasH * zoom) / 2;
   applyViewport();
@@ -551,7 +617,7 @@ window.addEventListener('mousemove', e => {
   applyViewport();
 });
 window.addEventListener('mouseup', () => { dragging = false; area.classList.remove('panning'); });
-document.getElementById('resetView').addEventListener('click', () => { zoom = 1; centerCanvas(); });
+document.getElementById('resetView').addEventListener('click', () => { centerCanvas(true); });
 
 // ── CANVAS SIZE ──
 function setCanvasSize(w, h) {
@@ -607,11 +673,18 @@ function render() {
   lines.forEach((line, i) => {
     const y = startY + i * fontSize * state.lineHeight;
     let x;
-    if (state.align === 'center')    { x = ax; octx.textAlign = ls === 0 ? 'center' : 'left'; }
-    else if (state.align === 'left') { x = ax - W / 2 + 40 * SS; octx.textAlign = 'left'; }
-    else                             { x = ax + W / 2 - 40 * SS; octx.textAlign = 'right'; }
-    if (ls !== 0) drawLine(octx, line, x, y);
-    else octx.fillText(line, x, y);
+    if (ls !== 0) {
+      octx.textAlign = 'left';
+      if (state.align === 'center')     x = ax;
+      else if (state.align === 'left')  x = ax - W / 2 + 40 * SS;
+      else                              x = ax + W / 2 - 40 * SS;
+      drawLine(octx, line, x, y);
+    } else {
+      if (state.align === 'center')     { x = ax; octx.textAlign = 'center'; }
+      else if (state.align === 'left')  { x = ax - W / 2 + 40 * SS; octx.textAlign = 'left'; }
+      else                              { x = ax + W / 2 - 40 * SS; octx.textAlign = 'right'; }
+      octx.fillText(line, x, y);
+    }
   });
 
   if (state.blurRadius > 0 || state.threshold < 254) applyInkbleed(off, octx);
@@ -647,6 +720,7 @@ document.getElementById('exportBtn').addEventListener('click', async () => {
   document.body.appendChild(a); a.click(); document.body.removeChild(a);
   setTimeout(() => URL.revokeObjectURL(url), 5000);
   setStatus('Exported!', 2000);
+  showToast('PNG exported');
 });
 document.getElementById('copyBtn').addEventListener('click', async () => {
   setStatus('Copying…');
@@ -654,15 +728,25 @@ document.getElementById('copyBtn').addEventListener('click', async () => {
     const blob = await getBlob();
     await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
     setStatus('Copied!', 2000);
+    showToast('PNG copied to clipboard');
   } catch {
     const blob = await getBlob();
     window.open(URL.createObjectURL(blob), '_blank');
     setStatus('Opened in tab', 2500);
+    showToast('PNG opened in new tab');
   }
 });
 function setStatus(msg, clr) {
   statusEl.textContent = msg;
   if (clr) setTimeout(() => { statusEl.textContent = 'Ready'; }, clr);
+}
+let toastTimer;
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.innerHTML = `<span class="toast-icon">✓</span>${msg}`;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 2200);
 }
 
 // ── PREVIEW BG ──
@@ -730,7 +814,7 @@ g('applySize').addEventListener('click', () => {
 // ── INIT ──
 document.fonts.ready.then(() => {
   render();
-  requestAnimationFrame(() => centerCanvas());
+  requestAnimationFrame(() => centerCanvas(true));
 });
 </script>
 </body>
