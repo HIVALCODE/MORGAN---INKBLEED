@@ -1,0 +1,757 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Inkbleed — Morgan Michelle</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@300;400;500&display=swap');
+</style>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --rosy:      #dc5c46;
+    --rosy-dim:  #c44e3a;
+    --mahogany:  #35140d;
+    --coffee:    #160b06;
+    --linen:     #f2f2f2;
+    --sand:      #e1dcc5;
+    --offwhite:  #efefe8;
+    --grey:      #cfcfcf;
+    --deep-blue: #31303a;
+    --bg:        var(--coffee);
+    --surface:   #1f0f0a;
+    --surface-2: #2a1510;
+    --border:    #3d1f16;
+    --border-hi: #5c2e22;
+    --text:      var(--offwhite);
+    --text-dim:  #8a6a63;
+    --input-bg:  #0f0805;
+    --font-serif: 'Instrument Serif', serif;
+    --font-sans:  'Geist', sans-serif;
+  }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-sans);
+    font-weight: 300;
+    font-size: 11px;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    user-select: none;
+  }
+
+  /* HEADER */
+  header {
+    padding: 7px 18px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    flex-shrink: 0;
+    background: var(--surface);
+  }
+  .header-monogram {
+    height: 28px;
+    width: 28px;
+    border-radius: 6px;
+    flex-shrink: 0;
+    display: block;
+    object-fit: cover;
+  }
+  .header-title {
+    font-family: var(--font-serif);
+    font-size: 17px;
+    font-weight: 400;
+    letter-spacing: -0.03em;
+    color: var(--offwhite);
+    line-height: 1;
+  }
+  .header-accent {
+    margin-left: auto;
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--rosy);
+    flex-shrink: 0;
+  }
+
+  .workspace { display: flex; flex: 1; overflow: hidden; }
+
+  /* SIDEBAR */
+  .sidebar {
+    width: 220px;
+    flex-shrink: 0;
+    border-right: 1px solid var(--border);
+    overflow-y: auto;
+    padding: 14px 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    background: var(--surface);
+  }
+  .sidebar::-webkit-scrollbar { width: 2px; }
+  .sidebar::-webkit-scrollbar-thumb { background: var(--border-hi); border-radius: 2px; }
+  .section-label {
+    font-size: 9px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    margin-bottom: 8px;
+    font-weight: 400;
+  }
+  .control-group { display: flex; flex-direction: column; gap: 7px; }
+  label {
+    font-size: 10px;
+    font-weight: 300;
+    color: var(--text-dim);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    user-select: none;
+    letter-spacing: 0.02em;
+  }
+  label .val { color: var(--text); font-weight: 400; }
+  input[type="text"], input[type="number"], select, textarea {
+    width: 100%;
+    background: var(--input-bg);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-family: var(--font-sans);
+    font-weight: 300;
+    font-size: 11px;
+    padding: 5px 8px;
+    outline: none;
+    border-radius: 2px;
+    transition: border-color 0.15s;
+    user-select: text;
+  }
+  input:focus, select:focus, textarea:focus { border-color: var(--rosy); }
+  textarea { resize: vertical; min-height: 56px; line-height: 1.5; }
+  select option { background: var(--surface); }
+  input[type="range"] {
+    width: 100%;
+    -webkit-appearance: none;
+    height: 2px;
+    background: var(--border-hi);
+    border-radius: 1px;
+    cursor: pointer;
+    outline: none;
+  }
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    background: var(--rosy);
+    cursor: pointer;
+    border: none;
+  }
+  input[type="range"]::-moz-range-thumb {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    background: var(--rosy);
+    cursor: pointer;
+    border: none;
+  }
+  input[type="color"] {
+    width: 100%;
+    height: 26px;
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    background: var(--input-bg);
+    cursor: pointer;
+    padding: 1px 2px;
+  }
+  .align-group { display: flex; gap: 4px; }
+  .align-btn {
+    flex: 1;
+    background: var(--input-bg);
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+    font-size: 12px;
+    padding: 4px;
+    cursor: pointer;
+    border-radius: 2px;
+    transition: all 0.12s;
+    text-align: center;
+    line-height: 1;
+  }
+  .align-btn:hover { border-color: var(--border-hi); color: var(--text); }
+  .align-btn.active { border-color: var(--rosy); color: var(--rosy); background: #1f0a07; }
+  .divider { border: none; border-top: 1px solid var(--border); }
+  .inkbleed-section {
+    background: #1a0c09;
+    border: 1px solid var(--border-hi);
+    border-radius: 3px;
+    padding: 10px;
+  }
+  .inkbleed-section .section-label { color: var(--rosy); opacity: 0.9; margin-bottom: 10px; }
+  .bg-row { display: flex; align-items: center; gap: 8px; }
+  .bg-toggle {
+    width: 28px; height: 16px;
+    background: var(--input-bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    position: relative;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: background 0.15s, border-color 0.15s;
+  }
+  .bg-toggle.on { background: var(--rosy-dim); border-color: var(--rosy); }
+  .bg-toggle::after {
+    content: '';
+    position: absolute;
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    background: var(--border-hi);
+    top: 2px; left: 2px;
+    transition: left 0.15s, background 0.15s;
+  }
+  .bg-toggle.on::after { left: 14px; background: var(--offwhite); }
+  .bg-row input[type="color"] { width: 30px; height: 22px; flex-shrink: 0; }
+  .bg-row span { color: var(--text-dim); font-size: 10px; flex: 1; }
+  .swatch-row { display: flex; gap: 5px; flex-wrap: wrap; }
+  .swatch {
+    width: 18px; height: 18px;
+    border-radius: 50%;
+    cursor: pointer;
+    border: 1.5px solid transparent;
+    transition: border-color 0.12s, transform 0.1s;
+    flex-shrink: 0;
+  }
+  .swatch:hover { border-color: var(--offwhite); transform: scale(1.15); }
+  .swatch.active { border-color: var(--offwhite); }
+
+  /* CANVAS */
+  .canvas-area {
+    flex: 1;
+    position: relative;
+    overflow: hidden;
+    background: #0f0805;
+    cursor: grab;
+  }
+  .canvas-area.panning { cursor: grabbing; }
+  #viewport { position: absolute; top: 0; left: 0; transform-origin: 0 0; }
+  .canvas-wrap {
+    position: relative;
+    box-shadow: 0 0 0 1px var(--border), 0 8px 40px rgba(0,0,0,0.6);
+  }
+  .canvas-wrap::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(45deg, #1a0d09 25%, transparent 25%),
+      linear-gradient(-45deg, #1a0d09 25%, transparent 25%),
+      linear-gradient(45deg, transparent 75%, #1a0d09 75%),
+      linear-gradient(-45deg, transparent 75%, #1a0d09 75%);
+    background-size: 14px 14px;
+    background-position: 0 0, 0 7px, 7px -7px, -7px 0px;
+    background-color: #130907;
+    z-index: 0;
+    pointer-events: none;
+  }
+  #previewBgLayer { position: absolute; inset: 0; z-index: 1; pointer-events: none; display: none; }
+  canvas { display: block; position: relative; z-index: 2; }
+  .zoom-badge {
+    position: absolute;
+    bottom: 12px; right: 12px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    padding: 3px 8px;
+    font-size: 10px;
+    color: var(--text-dim);
+    pointer-events: none;
+    z-index: 10;
+    font-family: var(--font-sans);
+    font-weight: 300;
+    letter-spacing: 0.04em;
+  }
+  .reset-btn {
+    position: absolute;
+    bottom: 12px; right: 72px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+    font-family: var(--font-sans);
+    font-weight: 300;
+    font-size: 9px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 4px 8px;
+    cursor: pointer;
+    border-radius: 2px;
+    transition: all 0.15s;
+    z-index: 10;
+  }
+  .reset-btn:hover { border-color: var(--border-hi); color: var(--text); }
+
+  /* BOTTOM BAR */
+  .bottom-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 16px;
+    border-top: 1px solid var(--border);
+    flex-shrink: 0;
+    gap: 10px;
+    background: var(--surface);
+  }
+  .canvas-size-controls { display: flex; align-items: center; gap: 7px; }
+  .canvas-size-controls input[type="number"] { width: 58px; padding: 4px 6px; }
+  .canvas-size-controls span { color: var(--text-dim); }
+  .btn {
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-family: var(--font-sans);
+    font-weight: 300;
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 6px 13px;
+    cursor: pointer;
+    border-radius: 2px;
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+  .btn:hover { border-color: var(--border-hi); background: var(--surface); }
+  .btn-export {
+    background: var(--rosy);
+    border-color: var(--rosy);
+    color: var(--offwhite);
+    font-weight: 400;
+    letter-spacing: 0.1em;
+  }
+  .btn-export:hover { background: var(--rosy-dim); border-color: var(--rosy-dim); }
+  .status {
+    font-family: var(--font-sans);
+    font-weight: 300;
+    color: var(--text-dim);
+    font-size: 10px;
+    min-width: 80px;
+    text-align: center;
+    letter-spacing: 0.05em;
+  }
+  .btn-row { display: flex; gap: 6px; align-items: center; }
+</style>
+</head>
+<body>
+
+<header>
+  <div id="monogramWrap" style="height:28px;width:28px;flex-shrink:0;border-radius:6px;overflow:hidden;display:block;"></div>
+  <span class="header-title">Inkbleed</span>
+  <div class="header-accent"></div>
+</header>
+
+<div class="workspace">
+  <div class="sidebar">
+    <div>
+      <div class="section-label">Text</div>
+      <div class="control-group">
+        <textarea id="textInput" rows="3" placeholder="Type something...">Life begins where
+automations start</textarea>
+      </div>
+    </div>
+    <hr class="divider">
+    <div>
+      <div class="section-label">Typeface</div>
+      <div class="control-group">
+        <label>Family</label>
+        <select id="fontFamily">
+          <option value="'Instrument Serif', serif" selected>Instrument Serif</option>
+          <option value="'Geist', sans-serif">Geist</option>
+        </select>
+        <label>Weight <span class="val" id="weightVal">400</span></label>
+        <select id="fontWeight">
+          <option value="300">300 — Light</option>
+          <option value="400" selected>400 — Regular</option>
+          <option value="500">500 — Medium</option>
+        </select>
+        <label>Size <span class="val" id="fontSizeVal">287px</span></label>
+        <input type="range" id="fontSize" min="12" max="400" value="287" step="1">
+        <label>Line Height <span class="val" id="lineHeightVal">0.90</span></label>
+        <input type="range" id="lineHeight" min="0.7" max="3" value="0.9" step="0.05">
+        <label>Letter Spacing <span class="val" id="letterSpacingVal">-10.5px</span></label>
+        <input type="range" id="letterSpacing" min="-20" max="80" value="-10.5" step="0.5">
+        <label>Style</label>
+        <select id="fontStyle">
+          <option value="normal">Normal</option>
+          <option value="italic">Italic</option>
+        </select>
+        <label>Align</label>
+        <div class="align-group">
+          <button class="align-btn" data-align="left">&#8676;</button>
+          <button class="align-btn active" data-align="center">&#8596;</button>
+          <button class="align-btn" data-align="right">&#8677;</button>
+        </div>
+      </div>
+    </div>
+    <hr class="divider">
+    <div>
+      <div class="section-label">Colour</div>
+      <div class="control-group">
+        <label>Text</label>
+        <input type="color" id="textColor" value="#ffffff">
+        <div class="swatch-row">
+          <div class="swatch" style="background:#160b06" data-target="text" data-color="#160b06" title="Coffee Bean"></div>
+          <div class="swatch" style="background:#35140d" data-target="text" data-color="#35140d" title="Rich Mahogany"></div>
+          <div class="swatch" style="background:#dc5c46" data-target="text" data-color="#dc5c46" title="Rosy Copper"></div>
+          <div class="swatch" style="background:#efefe8" data-target="text" data-color="#efefe8" title="Off-White"></div>
+          <div class="swatch" style="background:#e1dcc5" data-target="text" data-color="#e1dcc5" title="Sand Dune"></div>
+          <div class="swatch" style="background:#f2f2f2" data-target="text" data-color="#f2f2f2" title="Soft Linen"></div>
+          <div class="swatch" style="background:#31303a" data-target="text" data-color="#31303a" title="Deep Blue"></div>
+          <div class="swatch" style="background:#ffffff" data-target="text" data-color="#ffffff" title="White"></div>
+        </div>
+      </div>
+    </div>
+    <hr class="divider">
+    <div>
+      <div class="section-label">Position</div>
+      <div class="control-group">
+        <label>X Offset <span class="val" id="offsetXVal">0</span></label>
+        <input type="range" id="offsetX" min="-500" max="500" value="0" step="1">
+        <label>Y Offset <span class="val" id="offsetYVal">0</span></label>
+        <input type="range" id="offsetY" min="-500" max="500" value="0" step="1">
+      </div>
+    </div>
+    <hr class="divider">
+    <div>
+      <div class="section-label">Preview Background</div>
+      <div class="control-group">
+        <div class="bg-row">
+          <div class="bg-toggle" id="bgToggle"></div>
+          <span>Show colour</span>
+          <input type="color" id="bgColor" value="#efefe8">
+        </div>
+        <div class="swatch-row">
+          <div class="swatch" style="background:#efefe8" data-target="bg" data-color="#efefe8" title="Off-White"></div>
+          <div class="swatch" style="background:#e1dcc5" data-target="bg" data-color="#e1dcc5" title="Sand Dune"></div>
+          <div class="swatch" style="background:#f2f2f2" data-target="bg" data-color="#f2f2f2" title="Soft Linen"></div>
+          <div class="swatch" style="background:#160b06" data-target="bg" data-color="#160b06" title="Coffee Bean"></div>
+          <div class="swatch" style="background:#35140d" data-target="bg" data-color="#35140d" title="Rich Mahogany"></div>
+          <div class="swatch" style="background:#dc5c46" data-target="bg" data-color="#dc5c46" title="Rosy Copper"></div>
+          <div class="swatch" style="background:#31303a" data-target="bg" data-color="#31303a" title="Deep Blue"></div>
+          <div class="swatch" style="background:#ffffff" data-target="bg" data-color="#ffffff" title="White"></div>
+        </div>
+      </div>
+    </div>
+    <hr class="divider">
+    <div class="inkbleed-section">
+      <div class="section-label">⬡ Inkbleed</div>
+      <div class="control-group">
+        <label>Blur Radius <span class="val" id="blurVal">7.1px</span></label>
+        <input type="range" id="blurRadius" min="0" max="20" value="7.1" step="0.1">
+        <label>Threshold <span class="val" id="thresholdVal">65</span></label>
+        <input type="range" id="threshold" min="1" max="254" value="65" step="1">
+        <label>Spread <span class="val" id="spreadVal">0px</span></label>
+        <input type="range" id="spread" min="0" max="20" value="0" step="0.5">
+      </div>
+    </div>
+  </div>
+
+  <div class="canvas-area" id="canvasArea">
+    <div id="viewport">
+      <div class="canvas-wrap" id="canvasWrap">
+        <div id="previewBgLayer"></div>
+        <canvas id="mainCanvas"></canvas>
+      </div>
+    </div>
+    <button class="reset-btn" id="resetView">Reset View</button>
+    <div class="zoom-badge" id="zoomBadge">100%</div>
+  </div>
+</div>
+
+<div class="bottom-bar">
+  <div class="canvas-size-controls">
+    <span>W</span>
+    <input type="number" id="canvasW" value="2000" min="100" max="4000">
+    <span>H</span>
+    <input type="number" id="canvasH" value="2000" min="100" max="4000">
+    <button class="btn" id="applySize">Apply</button>
+  </div>
+  <div class="status" id="status">Ready</div>
+  <div class="btn-row">
+    <button class="btn" id="copyBtn">Copy PNG</button>
+    <button class="btn btn-export" id="exportBtn">Export PNG</button>
+  </div>
+</div>
+
+<script>
+
+// ── MONOGRAM — fetch SVG from Figma plugin local server and inline it ──
+fetch('http://localhost:3845/assets/6e055db879eaadd5e349203e46905bda5b60c37a.svg')
+  .then(r => r.text())
+  .then(svg => {
+    const wrap = document.getElementById('monogramWrap');
+    wrap.innerHTML = svg;
+    const el = wrap.querySelector('svg');
+    if (el) {
+      el.style.cssText = 'width:28px;height:28px;display:block;';
+      el.setAttribute('width', '28');
+      el.setAttribute('height', '28');
+    }
+  })
+  .catch(() => {
+    // Figma plugin not running — show a plain terracotta circle fallback
+    const wrap = document.getElementById('monogramWrap');
+    wrap.style.background = '#dc5c46';
+    wrap.style.borderRadius = '6px';
+  });
+
+// ── STATE ──
+const canvas   = document.getElementById('mainCanvas');
+const ctx      = canvas.getContext('2d', { willReadFrequently: true });
+const viewport = document.getElementById('viewport');
+const area     = document.getElementById('canvasArea');
+const bgLayer  = document.getElementById('previewBgLayer');
+const bgToggle = document.getElementById('bgToggle');
+const bgColorEl= document.getElementById('bgColor');
+const zoomBadge= document.getElementById('zoomBadge');
+const statusEl = document.getElementById('status');
+
+let state = {
+  text: 'Life begins where\nautomations start',
+  fontFamily: "'Instrument Serif', serif",
+  fontWeight: '400',
+  fontSize: 287,
+  lineHeight: 0.90,
+  letterSpacing: -10.5,
+  fontStyle: 'normal',
+  align: 'center',
+  color: '#ffffff',
+  offsetX: 0,
+  offsetY: 0,
+  blurRadius: 7.1,
+  threshold: 65,
+  spread: 0,
+  canvasW: 2000,
+  canvasH: 2000,
+  bgEnabled: false,
+  bgColor: '#efefe8',
+};
+
+// ── PAN / ZOOM ──
+let pan = { x: 0, y: 0 }, zoom = 1;
+let dragging = false, dragStart = {x:0,y:0}, panStart = {x:0,y:0};
+
+function applyViewport() {
+  viewport.style.transform = `translate(${pan.x}px,${pan.y}px) scale(${zoom})`;
+  zoomBadge.textContent = `${Math.round(zoom * 100)}%`;
+}
+function centerCanvas() {
+  const ar = area.getBoundingClientRect();
+  pan.x = (ar.width  - state.canvasW * zoom) / 2;
+  pan.y = (ar.height - state.canvasH * zoom) / 2;
+  applyViewport();
+}
+area.addEventListener('wheel', e => {
+  e.preventDefault();
+  const rect = area.getBoundingClientRect();
+  const mx = e.clientX - rect.left, my = e.clientY - rect.top;
+  const d  = e.deltaY < 0 ? 1.1 : 0.909;
+  const nz = Math.min(Math.max(zoom * d, 0.04), 20);
+  pan.x = mx - (mx - pan.x) * (nz / zoom);
+  pan.y = my - (my - pan.y) * (nz / zoom);
+  zoom  = nz;
+  applyViewport();
+}, { passive: false });
+area.addEventListener('mousedown', e => {
+  dragging = true;
+  dragStart = { x: e.clientX, y: e.clientY };
+  panStart  = { x: pan.x, y: pan.y };
+  area.classList.add('panning');
+});
+window.addEventListener('mousemove', e => {
+  if (!dragging) return;
+  pan.x = panStart.x + (e.clientX - dragStart.x);
+  pan.y = panStart.y + (e.clientY - dragStart.y);
+  applyViewport();
+});
+window.addEventListener('mouseup', () => { dragging = false; area.classList.remove('panning'); });
+document.getElementById('resetView').addEventListener('click', () => { zoom = 1; centerCanvas(); });
+
+// ── CANVAS SIZE ──
+function setCanvasSize(w, h) {
+  canvas.width = w; canvas.height = h;
+  bgLayer.style.width = w + 'px'; bgLayer.style.height = h + 'px';
+}
+setCanvasSize(state.canvasW, state.canvasH);
+
+// ── RENDER ──
+const SS = 2;
+function render() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  const lines    = state.text.split('\n');
+  const fontSize = state.fontSize * SS;
+  const font     = `${state.fontStyle} ${state.fontWeight} ${fontSize}px ${state.fontFamily}`;
+  const W = canvas.width * SS, H = canvas.height * SS;
+
+  const off = document.createElement('canvas');
+  off.width = W; off.height = H;
+  const octx = off.getContext('2d', { willReadFrequently: true });
+
+  if (state.spread > 0) {
+    octx.shadowColor = state.color;
+    octx.shadowBlur  = state.spread * SS * 2;
+  }
+  octx.font = font;
+  octx.fillStyle = state.color;
+  octx.textBaseline = 'alphabetic';
+
+  const ls = state.letterSpacing * SS;
+
+  function lineW(c, line) {
+    if (ls === 0) return c.measureText(line).width;
+    let w = 0;
+    for (let i = 0; i < line.length; i++) w += c.measureText(line[i]).width + ls;
+    return w - ls;
+  }
+  function drawLine(c, line, x, y) {
+    let cx = x;
+    if (state.align === 'center') cx = x - lineW(c, line) / 2;
+    else if (state.align === 'right') cx = x - lineW(c, line);
+    for (let i = 0; i < line.length; i++) {
+      c.fillText(line[i], cx, y);
+      cx += c.measureText(line[i]).width + ls;
+    }
+  }
+
+  const ax     = (canvas.width / 2 + state.offsetX) * SS;
+  const ay     = (canvas.height / 2 + state.offsetY) * SS;
+  const totalH = lines.length * fontSize * state.lineHeight;
+  const startY = ay - totalH / 2 + fontSize;
+
+  lines.forEach((line, i) => {
+    const y = startY + i * fontSize * state.lineHeight;
+    let x;
+    if (state.align === 'center')    { x = ax; octx.textAlign = ls === 0 ? 'center' : 'left'; }
+    else if (state.align === 'left') { x = ax - W / 2 + 40 * SS; octx.textAlign = 'left'; }
+    else                             { x = ax + W / 2 - 40 * SS; octx.textAlign = 'right'; }
+    if (ls !== 0) drawLine(octx, line, x, y);
+    else octx.fillText(line, x, y);
+  });
+
+  if (state.blurRadius > 0 || state.threshold < 254) applyInkbleed(off, octx);
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = 'high';
+  ctx.drawImage(off, 0, 0, W, H, 0, 0, canvas.width, canvas.height);
+}
+
+function applyInkbleed(off, octx) {
+  let id = octx.getImageData(0, 0, off.width, off.height);
+  if (state.blurRadius > 0) {
+    const bc = document.createElement('canvas');
+    bc.width = off.width; bc.height = off.height;
+    const bctx = bc.getContext('2d');
+    bctx.filter = `blur(${state.blurRadius * SS}px)`;
+    bctx.drawImage(off, 0, 0);
+    bctx.filter = 'none';
+    id = bctx.getImageData(0, 0, bc.width, bc.height);
+  }
+  const d = id.data, t = state.threshold;
+  for (let i = 0; i < d.length; i += 4) d[i+3] = d[i+3] >= t ? 255 : 0;
+  octx.clearRect(0, 0, off.width, off.height);
+  octx.putImageData(id, 0, 0);
+}
+
+// ── EXPORT / COPY ──
+function getBlob() { return new Promise(r => canvas.toBlob(r, 'image/png')); }
+document.getElementById('exportBtn').addEventListener('click', async () => {
+  setStatus('Exporting…');
+  const blob = await getBlob();
+  const url  = URL.createObjectURL(blob);
+  const a    = Object.assign(document.createElement('a'), { href: url, download: 'inkbleed-export.png' });
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 5000);
+  setStatus('Exported!', 2000);
+});
+document.getElementById('copyBtn').addEventListener('click', async () => {
+  setStatus('Copying…');
+  try {
+    const blob = await getBlob();
+    await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
+    setStatus('Copied!', 2000);
+  } catch {
+    const blob = await getBlob();
+    window.open(URL.createObjectURL(blob), '_blank');
+    setStatus('Opened in tab', 2500);
+  }
+});
+function setStatus(msg, clr) {
+  statusEl.textContent = msg;
+  if (clr) setTimeout(() => { statusEl.textContent = 'Ready'; }, clr);
+}
+
+// ── PREVIEW BG ──
+function updateBg() {
+  bgLayer.style.display    = state.bgEnabled ? 'block' : 'none';
+  bgLayer.style.background = state.bgColor;
+  bgToggle.classList.toggle('on', state.bgEnabled);
+}
+bgToggle.addEventListener('click', () => { state.bgEnabled = !state.bgEnabled; updateBg(); });
+bgColorEl.addEventListener('input', e => { state.bgColor = e.target.value; if (state.bgEnabled) updateBg(); });
+
+// ── SWATCHES ──
+document.querySelectorAll('.swatch').forEach(sw => {
+  sw.addEventListener('click', () => {
+    const target = sw.dataset.target, color = sw.dataset.color;
+    if (target === 'text') {
+      state.color = color;
+      document.getElementById('textColor').value = color;
+      document.querySelectorAll('[data-target="text"]').forEach(s => s.classList.remove('active'));
+    } else {
+      state.bgColor = color;
+      bgColorEl.value = color;
+      if (state.bgEnabled) updateBg();
+      document.querySelectorAll('[data-target="bg"]').forEach(s => s.classList.remove('active'));
+    }
+    sw.classList.add('active');
+    render();
+  });
+});
+
+// ── BIND CONTROLS ──
+function g(id) { return document.getElementById(id); }
+function bindRange(id, key, valId, fmt) {
+  const el = g(id), vl = g(valId);
+  el.addEventListener('input', () => { state[key] = parseFloat(el.value); vl.textContent = fmt(state[key]); render(); });
+}
+g('textInput').addEventListener('input', e => { state.text = e.target.value; render(); });
+g('fontFamily').addEventListener('change', e => { state.fontFamily = e.target.value; render(); });
+g('fontWeight').addEventListener('change', e => { state.fontWeight = e.target.value; g('weightVal').textContent = e.target.value; render(); });
+g('fontStyle').addEventListener('change', e => { state.fontStyle = e.target.value; render(); });
+g('textColor').addEventListener('input', e => { state.color = e.target.value; render(); });
+bindRange('fontSize',      'fontSize',      'fontSizeVal',      v => `${Math.round(v)}px`);
+bindRange('lineHeight',    'lineHeight',    'lineHeightVal',    v => v.toFixed(2));
+bindRange('letterSpacing', 'letterSpacing', 'letterSpacingVal', v => `${v}px`);
+bindRange('offsetX',       'offsetX',       'offsetXVal',       v => `${Math.round(v)}`);
+bindRange('offsetY',       'offsetY',       'offsetYVal',       v => `${Math.round(v)}`);
+bindRange('blurRadius',    'blurRadius',    'blurVal',          v => `${v.toFixed(1)}px`);
+bindRange('threshold',     'threshold',     'thresholdVal',     v => `${Math.round(v)}`);
+bindRange('spread',        'spread',        'spreadVal',        v => `${v}px`);
+document.querySelectorAll('.align-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.align-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    state.align = btn.dataset.align;
+    render();
+  });
+});
+g('applySize').addEventListener('click', () => {
+  state.canvasW = parseInt(g('canvasW').value);
+  state.canvasH = parseInt(g('canvasH').value);
+  setCanvasSize(state.canvasW, state.canvasH);
+  render(); centerCanvas();
+});
+
+// ── INIT ──
+document.fonts.ready.then(() => {
+  render();
+  requestAnimationFrame(() => centerCanvas());
+});
+</script>
+</body>
+</html>
