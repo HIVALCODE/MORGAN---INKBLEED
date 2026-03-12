@@ -439,6 +439,28 @@ automations start</textarea>
     </div>
     <hr class="divider">
     <div>
+      <div class="section-label">Path</div>
+      <div class="control-group">
+        <label>Mode</label>
+        <select id="pathMode">
+          <option value="linear" selected>Linear</option>
+          <option value="circle">Circle</option>
+        </select>
+        <div id="circleControls" style="display:none;flex-direction:column;gap:7px;">
+          <label>Radius <span class="val" id="circleRadiusVal">400px</span></label>
+          <input type="range" id="circleRadius" min="50" max="900" value="400" step="1">
+          <label>Start Angle <span class="val" id="circleStartVal">0°</span></label>
+          <input type="range" id="circleStart" min="0" max="360" value="0" step="1">
+          <label>Direction</label>
+          <div class="align-group">
+            <button class="align-btn active" data-dir="1" id="dirCW">CW</button>
+            <button class="align-btn" data-dir="-1" id="dirCCW">CCW</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <hr class="divider">
+    <div>
       <div class="section-label">Colour</div>
       <div class="control-group">
         <label>Text</label>
@@ -573,6 +595,10 @@ let state = {
   canvasH: 2000,
   bgEnabled: false,
   bgColor: '#efefe8',
+  pathMode: 'linear',
+  circleRadius: 400,
+  circleStart: 0,
+  circleDirection: 1,
 };
 
 // ── PAN / ZOOM ──
@@ -649,43 +675,90 @@ function render() {
 
   const ls = state.letterSpacing * SS;
 
-  function lineW(c, line) {
-    if (ls === 0) return c.measureText(line).width;
-    let w = 0;
-    for (let i = 0; i < line.length; i++) w += c.measureText(line[i]).width + ls;
-    return w - ls;
-  }
-  function drawLine(c, line, x, y) {
-    let cx = x;
-    if (state.align === 'center') cx = x - lineW(c, line) / 2;
-    else if (state.align === 'right') cx = x - lineW(c, line);
-    for (let i = 0; i < line.length; i++) {
-      c.fillText(line[i], cx, y);
-      cx += c.measureText(line[i]).width + ls;
-    }
+  if (state.pathMode === 'circle') {
+    renderCircle(octx, W, H, fontSize, ls);
+  } else {
+    renderLinear(octx, lines, W, H, fontSize, ls);
   }
 
-  const ax     = (canvas.width / 2 + state.offsetX) * SS;
-  const ay     = (canvas.height / 2 + state.offsetY) * SS;
-  const totalH = lines.length * fontSize * state.lineHeight;
-  const startY = ay - totalH / 2 + fontSize;
-
-  lines.forEach((line, i) => {
-    const y = startY + i * fontSize * state.lineHeight;
-    let x;
-    if (ls !== 0) {
-      octx.textAlign = 'left';
-      if (state.align === 'center')     x = ax;
-      else if (state.align === 'left')  x = ax - W / 2 + 40 * SS;
-      else                              x = ax + W / 2 - 40 * SS;
-      drawLine(octx, line, x, y);
-    } else {
-      if (state.align === 'center')     { x = ax; octx.textAlign = 'center'; }
-      else if (state.align === 'left')  { x = ax - W / 2 + 40 * SS; octx.textAlign = 'left'; }
-      else                              { x = ax + W / 2 - 40 * SS; octx.textAlign = 'right'; }
-      octx.fillText(line, x, y);
+  function renderLinear(c, lines, W, H, fontSize, ls) {
+    function lineW(line) {
+      if (ls === 0) return c.measureText(line).width;
+      let w = 0;
+      for (let i = 0; i < line.length; i++) w += c.measureText(line[i]).width + ls;
+      return w - ls;
     }
-  });
+    function drawLine(line, x, y) {
+      let cx = x;
+      if (state.align === 'center') cx = x - lineW(line) / 2;
+      else if (state.align === 'right') cx = x - lineW(line);
+      for (let i = 0; i < line.length; i++) {
+        c.fillText(line[i], cx, y);
+        cx += c.measureText(line[i]).width + ls;
+      }
+    }
+    const ax     = (canvas.width / 2 + state.offsetX) * SS;
+    const ay     = (canvas.height / 2 + state.offsetY) * SS;
+    const totalH = lines.length * fontSize * state.lineHeight;
+    const startY = ay - totalH / 2 + fontSize;
+
+    lines.forEach((line, i) => {
+      const y = startY + i * fontSize * state.lineHeight;
+      let x;
+      if (ls !== 0) {
+        c.textAlign = 'left';
+        if (state.align === 'center')     x = ax;
+        else if (state.align === 'left')  x = ax - W / 2 + 40 * SS;
+        else                              x = ax + W / 2 - 40 * SS;
+        drawLine(line, x, y);
+      } else {
+        if (state.align === 'center')     { x = ax; c.textAlign = 'center'; }
+        else if (state.align === 'left')  { x = ax - W / 2 + 40 * SS; c.textAlign = 'left'; }
+        else                              { x = ax + W / 2 - 40 * SS; c.textAlign = 'right'; }
+        c.fillText(line, x, y);
+      }
+    });
+  }
+
+  function renderCircle(c, W, H, fontSize, ls) {
+    const text = state.text.replace(/\n/g, ' ');
+    const cx = (canvas.width / 2 + state.offsetX) * SS;
+    const cy = (canvas.height / 2 + state.offsetY) * SS;
+    const r  = state.circleRadius * SS;
+    const dir = state.circleDirection;
+
+    c.textAlign = 'center';
+    c.textBaseline = 'middle';
+
+    const charWidths = [];
+    for (let i = 0; i < text.length; i++) {
+      charWidths.push(c.measureText(text[i]).width);
+    }
+
+    let totalAngle = 0;
+    for (let i = 0; i < text.length; i++) {
+      totalAngle += (charWidths[i] + (i < text.length - 1 ? ls : 0)) / r;
+    }
+
+    const startRad = (state.circleStart - 90) * Math.PI / 180;
+    let angle = startRad - (dir * totalAngle / 2);
+
+    for (let i = 0; i < text.length; i++) {
+      const halfChar = charWidths[i] / (2 * r);
+      angle += dir * halfChar;
+
+      const x = cx + r * Math.cos(angle);
+      const y = cy + r * Math.sin(angle);
+
+      c.save();
+      c.translate(x, y);
+      c.rotate(angle + Math.PI / 2);
+      c.fillText(text[i], 0, 0);
+      c.restore();
+
+      angle += dir * (halfChar + (i < text.length - 1 ? ls / r : 0));
+    }
+  }
 
   if (state.blurRadius > 0 || state.threshold < 254) applyInkbleed(off, octx);
   ctx.imageSmoothingEnabled = true;
@@ -777,8 +850,31 @@ document.querySelectorAll('.swatch').forEach(sw => {
   });
 });
 
-// ── BIND CONTROLS ──
+// ── PATH MODE TOGGLE ──
 function g(id) { return document.getElementById(id); }
+const circleControls = g('circleControls');
+function updatePathVisibility() {
+  circleControls.style.display = state.pathMode === 'circle' ? 'flex' : 'none';
+}
+g('pathMode').addEventListener('change', e => {
+  state.pathMode = e.target.value;
+  updatePathVisibility();
+  render();
+});
+g('dirCW').addEventListener('click', () => {
+  state.circleDirection = 1;
+  g('dirCW').classList.add('active');
+  g('dirCCW').classList.remove('active');
+  render();
+});
+g('dirCCW').addEventListener('click', () => {
+  state.circleDirection = -1;
+  g('dirCCW').classList.add('active');
+  g('dirCW').classList.remove('active');
+  render();
+});
+
+// ── BIND CONTROLS ──
 function bindRange(id, key, valId, fmt) {
   const el = g(id), vl = g(valId);
   el.addEventListener('input', () => { state[key] = parseFloat(el.value); vl.textContent = fmt(state[key]); render(); });
@@ -793,6 +889,8 @@ bindRange('lineHeight',    'lineHeight',    'lineHeightVal',    v => v.toFixed(2
 bindRange('letterSpacing', 'letterSpacing', 'letterSpacingVal', v => `${v}px`);
 bindRange('offsetX',       'offsetX',       'offsetXVal',       v => `${Math.round(v)}`);
 bindRange('offsetY',       'offsetY',       'offsetYVal',       v => `${Math.round(v)}`);
+bindRange('circleRadius',  'circleRadius',  'circleRadiusVal',  v => `${Math.round(v)}px`);
+bindRange('circleStart',   'circleStart',   'circleStartVal',   v => `${Math.round(v)}°`);
 bindRange('blurRadius',    'blurRadius',    'blurVal',          v => `${v.toFixed(1)}px`);
 bindRange('threshold',     'threshold',     'thresholdVal',     v => `${Math.round(v)}`);
 bindRange('spread',        'spread',        'spreadVal',        v => `${v}px`);
